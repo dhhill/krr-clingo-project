@@ -114,7 +114,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % deliver ----------------------------------------------------------------------------------------------------
 
 % can't deliver if not at the picking station
-:- deliver(R, O, I,U, T), robot(R, X,Y, T), pickingStation(P, X,Y).
+:- deliver(R, O, I,U, T), robot(R, X1,Y1, T), pickingStation(P, X2,Y2), X1!=X2, Y1!=Y2.
 
 % can't deliver if the robot isn't holding a shelf that matches the order
 :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2), deliver(R, O, I,U2, T).
