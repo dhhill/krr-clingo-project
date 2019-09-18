@@ -70,7 +70,7 @@ occurs(object(robot, R), move(DX,DY), T) :- robot(R, X,Y, T), move(R, DX, DY, T)
 
 %occurs(object(robot,’r’),pickup,’t’).
 holds(R, S, T+1) :- pickup(R, S, T).
-occurs(object(robot, R), pickup, T) :- pickup(R,S,T).
+occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 
 %occurs(object(robot,’r’),deliver(’o’,’i’,’u’),’t’).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
@@ -97,7 +97,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
 % robot can't go into a square with a shelf if it's already carrying a shelf
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T + 1), holds(R, S1, T), shelf(S2, X2,Y2, T + 1), S1 = S2.
+:- robot(R, X,Y, T), move(R, DX,DY, T), holds(R, S1, T), shelf(S2, X+DX, Y+DY, T + 1), S1 != S2.
 
 
 
@@ -151,11 +151,11 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 1{shelf(S, X,Y, 0):node(X,Y)}1 :- shelf(S, X,Y, 0).
 
 % uniqueness and existence of value constraints
-:- not 1{node(X,Y)}1, robot(R, X,Y, T), T=0..h.
+:- not {node(X,Y)} = 1, robot(R, X,Y, T), T=0..h.
 :- not {robot(R, X,Y, T)} 1, node(X,Y), T=0..h.
 :- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
-:- {holds(R, S, T)} != 1, object(robot, R), T=0..h.
+:- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
 
 
 % actions are exogenous
@@ -167,7 +167,7 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
+%{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
@@ -200,18 +200,8 @@ timeUnits(N) :- N = #count{T: move(R, DX, DY, T)}.
 
 #show timeUnits/1.
 %#show totalLeftToDeliver/1.
-
+%#show shelf/4.
+%#show robot/4.
+%#show holds/3.
 #show pickup/3.
 #show putdown/3.
-%#show move/4.
-
-%#show occurs/3.
-
-#show holds/3.
-
-%#show robot/4.
-
-%#show deliver/5.
-%#show shelf/4.
-%#show pickingStation/3.
-
