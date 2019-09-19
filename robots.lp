@@ -116,6 +116,12 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't put something down and deliver it at the same time
 :- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
 
+% also can't move and deliver during the same time step
+:- deliver(R, I, O, U, T), move(R, DX, DY, T).
+
+% can't pickup and move during the same time step
+:- pickup(R, S, T), move(R, DX, DY, T).
+
 % can't deliver nothing
 :- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
 
@@ -128,15 +134,14 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver an order to a picking station that doesn't match the order
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P).
 
+% can't deliver if the shelf doesn't have the right inventory
+:- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2), I1!=I2.
+
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
 
-% can't deliver if the robot isn't holding a shelf that matches the order
-:- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2), deliver(R, O, I,U2, T).
 
 
-% only deliver if the robot is holding a shelf that matches the order, and is at the picking station
-deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2).
 
 
 
