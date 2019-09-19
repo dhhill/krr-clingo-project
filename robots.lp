@@ -113,9 +113,20 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % deliver ----------------------------------------------------------------------------------------------------
 
+% can't put something down and deliver it at the same time
+:- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
+
+% can't deliver nothing
+:- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
+
 % can't deliver if not at the picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
 
+% can't deliver if the robot isn't holding anything
+:- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
+
+% can't deliver an order to a picking station that doesn't match the order
+:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P).
 % can't deliver if the robot isn't holding a shelf that matches the order
 :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2), deliver(R, O, I,U2, T).
 
