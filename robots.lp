@@ -132,7 +132,7 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 :- putdown(R, S, T), not holds(R, S, T).
 
 % can't put down nothing
-:- putdown(R, S, T), holds(R, S, T), S=nothing.
+:- putdown(R, S, T), S=nothing.
 
 % can't put something down in a highway square
 :- putdown(R, S, T), robot(R, X,Y, T), highway(X,Y).
