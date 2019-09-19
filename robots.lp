@@ -74,7 +74,6 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 
 %occurs(object(robot,’r’),deliver(’o’,’i’,’u’),’t’).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
-holds(R, nothing, T + 1) :- deliver(R, O, I,U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
 %occurs(object(robot,'r'), putdown,'t').
@@ -98,7 +97,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
 % robot can't go into a square with a shelf if it's already carrying a shelf
-:- robot(R, X,Y, T), move(R, DX,DY, T), holds(R, S1, T), shelf(S2, X+DX, Y+DY, T + 1), S1 != S2.
+%:- robot(R, X,Y, T), move(R, DX,DY, T), holds(R, S1, T), shelf(S2, X+DX, Y+DY, T + 1), S1 != S2.
 
 
 
