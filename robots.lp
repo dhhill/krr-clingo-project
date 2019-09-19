@@ -57,7 +57,7 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 :- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
 % if a robot is holding a shelf, the shelf has the same location as the robot
-:- robot(R, X,Y, T), holds(R, S, T), not shelf(S, X,Y, T), S!=nothing.
+shelf(S, X,Y, T) :- robot(R, X,Y, T), holds(R, S, T), S!=nothing.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
