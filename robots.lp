@@ -157,6 +157,7 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 :- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
 :- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
+:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=0..h.
 
 
 % actions are exogenous
