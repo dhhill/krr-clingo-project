@@ -188,7 +188,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
-{deliver(R, O, I,1..10, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), T = 0..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
