@@ -169,7 +169,7 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
-%{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
