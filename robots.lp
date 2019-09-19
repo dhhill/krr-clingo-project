@@ -127,6 +127,10 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % can't deliver an order to a picking station that doesn't match the order
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P).
+
+% can't deliver more than the amount that's actually on the shelf
+:- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
+
 % can't deliver if the robot isn't holding a shelf that matches the order
 :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P), order(O, I,U1), holds(R, S, T), product(I, S,U2), deliver(R, O, I,U2, T).
 
@@ -179,7 +183,7 @@ deliver(R, O, I,U2, T) :- robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P),
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.
+{deliver(R, O, I,1..10, T)} :- object(robot, R), order(O, I,U), T = 0..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
