@@ -177,7 +177,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
 :- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=0..h.
-:- not {leftToDeliver(O, I,U, T)} = 1, object(order, O), T=0..h.
+:- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=0..h.
 
 
 % actions are exogenous
