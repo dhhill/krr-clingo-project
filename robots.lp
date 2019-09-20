@@ -97,8 +97,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % robots cannot swap squares
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
-% robot can't go into a square with a shelf if it's already carrying a shelf
-%:- robot(R, X,Y, T), move(R, DX,DY, T), holds(R, S1, T), shelf(S2, X+DX, Y+DY, T + 1), S1 != S2.
+% two shelves can't be in the same square
+:- shelf(S1, X,Y, T), shelf(S2, X,Y, T), S1!=S2.
 
 
 
