@@ -104,11 +104,10 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
-:- pickup(R, S, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
+:- pickup(R, S, T), robot(R, X, Y, T), not shelf(S, X, Y, T).
 
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
-
 
 
 % deliver ----------------------------------------------------------------------------------------------------
@@ -209,7 +208,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 totalLeftToDeliver(X) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}.
-%#minimize{X : totalLeftToDeliver(X)}.
+:- totalLeftToDeliver(X), X!=0.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
@@ -219,10 +218,11 @@ timeUnits(N) :- N = #count{T: move(R, DX, DY, T)}.
 
 
 
-#show timeUnits/1.
+%#show timeUnits/1.
 %#show totalLeftToDeliver/1.
 %#show shelf/4.
 %#show robot/4.
 %#show holds/3.
-#show pickup/3.
-#show putdown/3.
+%#show pickup/3.
+%#show putdown/3.
+#show occurs/3.

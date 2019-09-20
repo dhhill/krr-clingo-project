@@ -49,30 +49,7 @@ init(object(order,3),value(line,pair(4,1))).
 """
 
 output = """
-occurs(object(robot,1),move(-1,0),1) 
-occurs(object(robot,2),move(-1,0),1)
-occurs(object(robot,1),move(-1,0),2)
-occurs(object(robot,2),pickup,2)
-occurs(object(robot,2),move(0,1),3)
-occurs(object(robot,1),pickup,4)
-occurs(object(robot,2),deliver(1,3,4),4)
-occurs(object(robot,1),move(-1,0),5)
-occurs(object(robot,2),move(0,-1),5)
-occurs(object(robot,1),deliver(1,1,1),6)
-occurs(object(robot,2),putdown,6)
-occurs(object(robot,1),putdown,7)
-occurs(object(robot,2),move(1,0),7)
-occurs(object(robot,1),move(1,0),8)
-occurs(object(robot,2),move(1,0),8)
-occurs(object(robot,1),move(0,-1),9)
-occurs(object(robot,2),pickup,9)
-occurs(object(robot,1),pickup,10)
-occurs(object(robot,2),move(0,-1),10)
-occurs(object(robot,1),move(1,0),11)
-occurs(object(robot,2),deliver(3,4,1),11)
-occurs(object(robot,1),move(0,-1),12)
-occurs(object(robot,2),move(1,0),12)
-occurs(object(robot,1),deliver(2,2,1),13)
+occurs(object(robot,1),putdown,4) occurs(object(robot,2),putdown,7) occurs(object(robot,2),deliver(1,1,1),3) occurs(object(robot,2),deliver(1,1,1),4) occurs(object(robot,2),deliver(1,1,1),5) occurs(object(robot,2),deliver(1,1,1),6) occurs(object(robot,1),pickup,1) occurs(object(robot,2),pickup,1) occurs(object(robot,1),move(-1,0),0) occurs(object(robot,1),move(-1,0),2) occurs(object(robot,1),move(-1,0),3) occurs(object(robot,1),move(-1,0),5) occurs(object(robot,2),move(0,-1),0) occurs(object(robot,1),move(0,1),6) occurs(object(robot,2),move(1,0),2) occurs(object(robot,1),move(1,0),4)
 """
 
 
@@ -92,9 +69,13 @@ class Robot:
             shelf_dict[self.carrying].y += params[1]
 
     def pickup(self):
+        if self.carrying != -1:
+            raise Exception('trying to pickup while carrying')
         for s in shelf_dict:
             if shelf_dict[s].x == self.x and shelf_dict[s].y == self.y:
                 self.carrying = s
+        if self.carrying == -1:
+            raise Exception('trying to pickup nothing')
     
     def putdown(self):
         self.carrying = -1
@@ -168,19 +149,23 @@ def print_map():
     for y in range(1,max_y+1):
         for x in range(1,max_x+1):
             if any((robot_dict[b].x == x and robot_dict[b].y == y) for b in robot_dict):
-                print('R ', end='')
-                # print('robot',x,y)
+                print('R', end='')
+                if any((shelf_dict[s].x == x and shelf_dict[s].y == y) for s in shelf_dict):
+                    print('S', end='')
+                elif any((highway_dict[h].x == x and highway_dict[h].y == y) for h in highway_dict):
+                    print('H', end='')
+                else:
+                    print(' ', end='')
             elif any((shelf_dict[s].x == x and shelf_dict[s].y == y) for s in shelf_dict):
                 print('S ', end='')
-                # print('shelf',x,y)
             elif any((highway_dict[h].x == x and highway_dict[h].y == y) for h in highway_dict):
                 print('H ', end='')
-                # print('highway',x,y)
             else:
                 print('  ', end='')
         print('|')
     print('--'*max_x)
 
+print_map()
 for timestep in range(max_t):
     for action in organized_actions[timestep+1]:
         print(action)
