@@ -122,6 +122,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't pickup and move during the same time step
 :- pickup(R, S, T), move(R, DX, DY, T).
 
+% can't put down and move during the same time step
+:- putdown(R, S, T), move(R, DX, DY, T).
+
 % can't deliver nothing
 :- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
 
