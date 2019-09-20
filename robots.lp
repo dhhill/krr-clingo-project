@@ -37,6 +37,7 @@ product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the sh
 
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
+object(order, O) :- init(object(order, O), value(line,pair(I,U))).
 leftToDeliver(O, I,U, 0) :- init(object(order, O), value(line,pair(I,U))).
 
 %init(object(order,'o'),value(pickingStation,'p')).
@@ -104,7 +105,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
-:- pickup(R, S, T), robot(R, X, Y, T), not shelf(S, X, Y, T).
+:- pickup(R, S, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
 
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
@@ -176,6 +177,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
 :- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=0..h.
+:- not {leftToDeliver(O, I,U, T)} = 1, object(order, O), T=0..h.
 
 
 % actions are exogenous
