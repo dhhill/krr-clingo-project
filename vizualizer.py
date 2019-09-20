@@ -70,15 +70,23 @@ class Robot:
 
     def pickup(self):
         if self.carrying != -1:
-            raise Exception('trying to pickup while carrying')
+            print('trying to pickup while carrying')
         for s in shelf_dict:
             if shelf_dict[s].x == self.x and shelf_dict[s].y == self.y:
                 self.carrying = s
         if self.carrying == -1:
-            raise Exception('trying to pickup nothing')
+            print('trying to pickup nothing')
     
     def putdown(self):
+        if self.carrying == -1:
+            print('putting down nothing')
         self.carrying = -1
+    
+    def deliver(self):
+        if self.carrying == -1:
+            print('delivering without holding shelf')
+        if not any((picking_station_dict[h].x == self.x and picking_station_dict[h].y == self.y) for h in picking_station_dict):
+            print('delivering to bad location')
 
 class Shelf:
     def __init__(self, x, y):
@@ -93,6 +101,13 @@ class Highway:
         self.y = y
     def __repr__(self):
         return 'Highway at ' + str(self.x) + ',' + str(self.y)
+
+class Picking_station:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+    def __repr__(self):
+        return 'Picking station at ' + str(self.x) + ',' + str(self.y)
 
 ##################################################
 # Parse
@@ -121,6 +136,7 @@ init_list = init.split()
 highway_dict = {}
 robot_dict = {}
 shelf_dict = {}
+picking_station_dict = {}
 max_x = 0
 max_y = 0
 
@@ -136,6 +152,8 @@ for init_string in init_list:
     if 'shelf' in init_string:
         location = True
         shelf_dict[params[0]] = Shelf(params[1], params[2])
+    if 'pickingStation' in init_string and len(params) == 3:
+        picking_station_dict[params[0]] = Picking_station(params[1], params[2])
 
     if location:
         max_x = max(params[-2],max_x)
@@ -154,12 +172,16 @@ def print_map():
                     print('S', end='')
                 elif any((highway_dict[h].x == x and highway_dict[h].y == y) for h in highway_dict):
                     print('H', end='')
+                elif any((picking_station_dict[h].x == x and picking_station_dict[h].y == y) for h in picking_station_dict):
+                    print('P', end='')
                 else:
                     print(' ', end='')
             elif any((shelf_dict[s].x == x and shelf_dict[s].y == y) for s in shelf_dict):
                 print('S ', end='')
             elif any((highway_dict[h].x == x and highway_dict[h].y == y) for h in highway_dict):
                 print('H ', end='')
+            elif any((picking_station_dict[h].x == x and picking_station_dict[h].y == y) for h in picking_station_dict):
+                print('P ', end='')
             else:
                 print('  ', end='')
         print('|')
@@ -171,8 +193,10 @@ for timestep in range(max_t):
         print(action)
         if action['action'] == 'mo':
             robot_dict[action['robot_id']].move(action['action_params'])
-        if action['action'] == 'pi':
+        elif action['action'] == 'pi':
             robot_dict[action['robot_id']].pickup()
-        if action['action'] == 'pu':
+        elif action['action'] == 'pu':
             robot_dict[action['robot_id']].putdown()
+        elif action['action'] == 'de':
+            robot_dict[action['robot_id']].deliver()
     print_map()
