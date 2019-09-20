@@ -204,19 +204,19 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-totalLeftToDeliver(X) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}.
-:- totalLeftToDeliver(X), X!=0.
+totalOrders(X) :- X = #sum{U, O,I: leftToDeliver(O, I,U, 0)}.
+totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=0..h.
+
+% count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
+wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=0..h.
+#maximize{T : wait(T)}.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
-% count how many time units are needed, then minimize that number
-timeUnits(N) :- N = #count{T: move(R, DX, DY, T)}.
-%#minimize{N: timeUnits(N)}.
 
 
 
