@@ -37,6 +37,7 @@ product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the sh
 
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
+object(order, O) :- init(object(order, O), value(line,pair(I,U))).
 leftToDeliver(O, I,U, 0) :- init(object(order, O), value(line,pair(I,U))).
 
 %init(object(order,'o'),value(pickingStation,'p')).
@@ -96,15 +97,15 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % robots cannot swap squares
 :- robot(R1, X1,Y1, T), robot(R2, X2,Y2, T), robot(R1, X2,Y2, T + 1), robot(R2, X1,Y1, T + 1), R1!=R2.
 
-% robot can't go into a square with a shelf if it's already carrying a shelf
-%:- robot(R, X,Y, T), move(R, DX,DY, T), holds(R, S1, T), shelf(S2, X+DX, Y+DY, T + 1), S1 != S2.
+% two shelves can't be in the same square
+:- shelf(S1, X,Y, T), shelf(S2, X,Y, T), S1!=S2.
 
 
 
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
-:- pickup(R, S, T), robot(R, X, Y, T), not shelf(S, X, Y, T).
+:- pickup(R, S, T), robot(R, X,Y, T), not shelf(S, X,Y, T).
 
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
@@ -176,6 +177,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
 :- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=0..h.
+:- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=0..h.
 
 
 % actions are exogenous
@@ -202,19 +204,19 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-totalLeftToDeliver(X) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}.
-:- totalLeftToDeliver(X), X!=0.
+totalOrders(X) :- X = #sum{U, O,I: leftToDeliver(O, I,U, 0)}.
+totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=0..h.
+
+% count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
+wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=0..h.
+#maximize{T : wait(T)}.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
-% count how many time units are needed, then minimize that number
-timeUnits(N) :- N = #count{T: move(R, DX, DY, T)}.
-%#minimize{N: timeUnits(N)}.
 
 
 
