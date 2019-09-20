@@ -24,12 +24,12 @@ highway(X,Y) :- init(object(highway, H), value(at,pair(X,Y))).
 pickingStation(P, X,Y) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 
 %init(object(robot,'r'),value(at,pair('x','y'))).
-robot(R, X,Y, 0) :- init(object(robot, R), value(at,pair(X,Y))).
+robot(R, X,Y, 1) :- init(object(robot, R), value(at,pair(X,Y))).
 object(robot, R) :- init(object(robot, R), value(at,pair(X,Y))).
-holds(R, nothing, 0) :- init(object(robot, R), value(at,pair(X,Y))).
+holds(R, nothing, 1) :- init(object(robot, R), value(at,pair(X,Y))).
 
 %init(object(shelf,'s'),value(at,pair('x','y'))).
-shelf(S, X,Y, 0) :- init(object(shelf, S), value(at,pair(X,Y))).
+shelf(S, X,Y, 1) :- init(object(shelf, S), value(at,pair(X,Y))).
 object(shelf, S) :- init(object(shelf, S), value(at,pair(X,Y))).
 
 %init(object(product,'i'),value(on,pair('s','u'))).
@@ -38,7 +38,7 @@ product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the sh
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
 object(order, O) :- init(object(order, O), value(line,pair(I,U))).
-leftToDeliver(O, I,U, 0) :- init(object(order, O), value(line,pair(I,U))).
+leftToDeliver(O, I,U, 1) :- init(object(order, O), value(line,pair(I,U))).
 
 %init(object(order,'o'),value(pickingStation,'p')).
 order(O, P) :- init(object(order, O), value(pickingStation, P)).
@@ -166,40 +166,40 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % fluents are initially exogenous 
-1{robot(R, X,Y, 0):node(X,Y)}1 :- robot(R, X,Y, 0).
-1{holds(R, nothing, 0)}1 :- object(robot, R).
-1{shelf(S, X,Y, 0):node(X,Y)}1 :- shelf(S, X,Y, 0).
+1{robot(R, X,Y, 1):node(X,Y)}1 :- robot(R, X,Y, 1).
+1{holds(R, nothing, 1)}1 :- object(robot, R).
+1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
 
 % uniqueness and existence of value constraints
-:- not {node(X,Y)} = 1, robot(R, X,Y, T), T=0..h.
-:- not {robot(R, X,Y, T)} 1, node(X,Y), T=0..h.
-:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=0..h.
-:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=0..h.
-:- not {holds(R, S, T)} = 1, object(robot, R), T=0..h.
-:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=0..h.
-:- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=0..h.
+:- not {node(X,Y)} = 1, robot(R, X,Y, T), T=1..h.
+:- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.
+:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=1..h.
+:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.
+:- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
+:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
+:- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=1..h.
 
 
 % actions are exogenous
 
 % move
-{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T = 0..h-1.
+{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T = 1..h-1.
 
 % pickup
-{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
+{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), T = 0..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
 
 % putdown
-{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 0..h-1.
+{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 
 % everything stays where it was if no movement is indicated (commonsense law of inertia)
-{robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=0..h-1.
-{shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=0..h-1.
-{holds(R, S, T + 1)} :- holds(R, S, T), T=0..h-1.
-{leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=0..h-1.
+{robot(R, X,Y, T + 1)} :- robot(R, X,Y, T), T=1..h-1.
+{shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=1..h-1.
+{holds(R, S, T + 1)} :- holds(R, S, T), T=1..h-1.
+{leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=1..h-1.
 
 
 
@@ -209,10 +209,10 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 totalOrders(X) :- X = #sum{U, O,I: leftToDeliver(O, I,U, 0)}.
-totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=0..h.
+totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=1..h.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
-wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=0..h.
+wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=1..h.
 #maximize{T : wait(T)}.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
