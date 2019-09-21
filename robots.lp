@@ -2,6 +2,8 @@
 % robots.lp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%#include "case5.asp".
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,6 +112,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
 
+% can't pickup nothing
+:- pickup(R, S, T), robot(R, X,Y, T), S=nothing.
+
 
 % deliver ----------------------------------------------------------------------------------------------------
 
@@ -135,17 +140,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
 
 % can't deliver an order to a picking station that doesn't match the order
-:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P).
+:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
 
 % can't deliver if the shelf doesn't have the right inventory
 :- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2), I1!=I2.
 
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
-
-
-
-
 
 
 
@@ -168,7 +169,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % domain independent axioms
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% fluents are initially exogenous 
+% fluents are initially exogenous
 1{robot(R, X,Y, 1):node(X,Y)}1 :- robot(R, X,Y, 1).
 1{holds(R, nothing, 1)}1 :- object(robot, R).
 1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
@@ -211,23 +212,30 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-totalOrders(X) :- X = #sum{U, O,I: leftToDeliver(O, I,U, 0)}.
+totalOrders(X) :- X = #sum{O,I,U: leftToDeliver(O, I,U, 1)}.
 totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=1..h.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
-wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=1..h.
-#maximize{T : wait(T)}.
+wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}.
+#maximize{X : wait(X)}.
+
+% minimize actions
+actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
+#minimize{A : actions(A)}.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
 
 
-
+#show totalOrders/1.
 %#show timeUnits/1.
-%#show totalLeftToDeliver/1.
+%#show totalLeftToDeliver/2.
+%#show leftToDeliver/4.
 %#show shelf/4.
 %#show robot/4.
 %#show holds/3.
 %#show pickup/3.
 %#show putdown/3.
 #show occurs/3.
+#show wait/1.
+#show actions/1.
