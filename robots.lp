@@ -2,6 +2,8 @@
 % robots.lp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+#include "case1.asp".
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,6 +112,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't pick something up if already holding something
 :- pickup(R, S, T), holds(R, S1, T), S1!=nothing.
 
+% can't pickup nothing
+:- pickup(R, S, T), robot(R, X,Y, T), S=nothing.
+
 
 % deliver ----------------------------------------------------------------------------------------------------
 
@@ -135,17 +140,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
 
 % can't deliver an order to a picking station that doesn't match the order
-:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O, P).
+:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
 
 % can't deliver if the shelf doesn't have the right inventory
 :- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2), I1!=I2.
 
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
-
-
-
-
 
 
 
@@ -168,7 +169,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % domain independent axioms
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% fluents are initially exogenous 
+% fluents are initially exogenous
 1{robot(R, X,Y, 1):node(X,Y)}1 :- robot(R, X,Y, 1).
 1{holds(R, nothing, 1)}1 :- object(robot, R).
 1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
@@ -222,7 +223,7 @@ wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=1..h.
 
 
 
-
+%#show totalOrders/1.
 %#show timeUnits/1.
 %#show totalLeftToDeliver/1.
 %#show shelf/4.
