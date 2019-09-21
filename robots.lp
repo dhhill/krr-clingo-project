@@ -2,6 +2,8 @@
 % robots.lp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%#include "case5.asp".
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -210,23 +212,30 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-totalOrders(X) :- X = #sum{U, O,I: leftToDeliver(O, I,U, 0)}.
+totalOrders(X) :- X = #sum{O,I,U: leftToDeliver(O, I,U, 1)}.
 totalLeftToDeliver(X, T) :- X = #sum{U, O,I, T: leftToDeliver(O, I,U, T)}, T=1..h.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
-wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}, T=1..h.
-#maximize{T : wait(T)}.
+wait(X) :- X = #count{T: totalLeftToDeliver(0, T)}.
+#maximize{X : wait(X)}.
+
+% minimize actions
+actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
+#minimize{A : actions(A)}.
 
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
 
 
-%#show totalOrders/1.
+#show totalOrders/1.
 %#show timeUnits/1.
-%#show totalLeftToDeliver/1.
+%#show totalLeftToDeliver/2.
+%#show leftToDeliver/4.
 %#show shelf/4.
 %#show robot/4.
 %#show holds/3.
 %#show pickup/3.
 %#show putdown/3.
 #show occurs/3.
+#show wait/1.
+#show actions/1.
