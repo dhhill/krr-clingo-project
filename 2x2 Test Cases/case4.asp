@@ -12,7 +12,7 @@ init(object(robot,1),value(at,pair(1,1))).
 
 init(object(shelf,1),value(at,pair(2,2))).
 
-init(object(product,1),value(on,pair(1,1000))).
+init(object(product,1),value(on,pair(1,2000))).
 
 init(object(order,1),value(pickingStation,1)).
 init(object(order,1),value(line,pair(1,1000))).

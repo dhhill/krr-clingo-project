@@ -67,7 +67,7 @@ def parse():
     output = ''
     output = subprocess.run(['clingo', 'robots.lp', sys.argv[1], '-c', 'h=' + sys.argv[2]], stdout=subprocess.PIPE).stdout.decode('utf-8')
     print(output)
-    output = re.findall(".*(?=\r\n\w*: \d*\r\nOPTIMUM)", output, re.MULTILINE)[0]
+    output = re.findall(".*(?=\r\n\w*: -?\d*\r\nOPTIMUM)", output, re.MULTILINE)[0]
 
     # parse output
     action_list = output.split()

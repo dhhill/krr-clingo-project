@@ -35,10 +35,11 @@ shelf(S, X,Y, 1) :- init(object(shelf, S), value(at,pair(X,Y))).
 object(shelf, S) :- init(object(shelf, S), value(at,pair(X,Y))).
 
 %init(object(product,'i'),value(on,pair('s','u'))).
-product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
+product(I,S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
+leftOnShelf(S,I,U,1) :- init(object(product, I), value(on,pair(S,U))).
 
 %init(object(order,'o'),value(line,pair('i','u'))).
-order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
+order(O,I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
 object(order, O) :- init(object(order, O), value(line,pair(I,U))).
 leftToDeliver(O, I,U, 1) :- init(object(order, O), value(line,pair(I,U))).
 
@@ -76,7 +77,10 @@ holds(R, S, T+1) :- pickup(R, S, T).
 occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 
 %occurs(object(robot,’r’),deliver(’o’,’i’,’u’),’t’).
-leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
+%decrement shelf amount
+leftOnShelf(S,I,U-U1,T+1) :- deliver(R,O,I,U1,T), holds(R,S,T), leftOnShelf(S,I,U,T), U1<=U.
+%decrement order amount
+leftToDeliver(O,I,U-U1,T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
 %occurs(object(robot,'r'), putdown,'t').
@@ -87,6 +91,21 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % action constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% no double actions in one timestep -----------------------------------------------------------------------
+
+% can't put something down and deliver it at the same time
+:- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
+
+% also can't move and deliver during the same time step
+:- deliver(R, I, O, U, T), move(R, DX, DY, T).
+
+% can't pickup and move during the same time step
+:- pickup(R, S, T), move(R, DX, DY, T).
+
+% can't put down and move during the same time step
+:- putdown(R, S, T), move(R, DX, DY, T).
+
 
 % move ----------------------------------------------------------------------------------------------------
 
@@ -103,7 +122,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- shelf(S1, X,Y, T), shelf(S2, X,Y, T), S1!=S2.
 
 
-
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
@@ -118,21 +136,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % deliver ----------------------------------------------------------------------------------------------------
 
-% can't put something down and deliver it at the same time
-:- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
-
-% also can't move and deliver during the same time step
-:- deliver(R, I, O, U, T), move(R, DX, DY, T).
-
-% can't pickup and move during the same time step
-:- pickup(R, S, T), move(R, DX, DY, T).
-
-% can't put down and move during the same time step
-:- putdown(R, S, T), move(R, DX, DY, T).
-
-% can't deliver nothing
-:- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
-
 % can't deliver if not at the picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
 
@@ -141,13 +144,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % can't deliver an order to a picking station that doesn't match the order
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
-
-% can't deliver if the shelf doesn't have the right inventory
-:- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2), I1!=I2.
-
-% can't deliver more than the amount that's actually on the shelf
-:- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
-
 
 
 % putdown ----------------------------------------------------------------------------------------------------
@@ -160,8 +156,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % can't put something down in a highway square
 :- putdown(R, S, T), robot(R, X,Y, T), highway(X,Y).
-
-
 
 
 
@@ -182,6 +176,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
 :- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=1..h.
+:- not {leftOnShelf(S,I,U,T)} = A, A=#count{S,I: leftOnShelf(S,I,U,1)}, object(shelf, S), T=1..h.
 
 
 % actions are exogenous
@@ -193,7 +188,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), U2>=U, T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
@@ -204,6 +199,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=1..h-1.
 {holds(R, S, T + 1)} :- holds(R, S, T), T=1..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=1..h-1.
+{leftOnShelf(S,I,U,T+1)} :- leftOnShelf(S,I,U,T), T=1..h-1.
 
 
 
@@ -239,3 +235,4 @@ actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 #show occurs/3.
 %#show wait/1.
 %#show actions/1.
+#show leftOnShelf/4.
