@@ -22,9 +22,7 @@ init(object(robot,2),value(at,pair(2,2))).
 
 init(object(shelf,4),value(at,pair(4,4))).
 
-init(object(product,2),value(on,pair(4,1))).  % 1 unit of product 2 on shelf 4
+init(object(product,2),value(on,pair(4,1))).
 
-init(object(order,2),value(pickingStation,2)).  % deliver order 2 to pickiong station 2
-init(object(order,2),value(line,pair(2,1))).  % order 2 is requesting one unit of product 2 (which is on shelf 4)
-%init(object(order,3),value(pickingStation,2)).
-%init(object(order,3),value(line,pair(4,1))).  % order 3 is requesting 1 unit of product 4
+init(object(order,2),value(pickingStation,2)). 
+init(object(order,2),value(line,pair(2,1))).
