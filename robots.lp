@@ -78,10 +78,10 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 
 %occurs(object(robot,’r’),deliver(’o’,’i’,’u’),’t’).
 %decrement shelf amount
-leftOnShelf(S,I,U-U1,T+1) :- deliver(R,O,I,U1,T), holds(R,S,T), leftOnShelf(S,I,U,T), U1<=U.
+leftOnShelf(S,I,U-U1,T+1) :- deliver(R,O,I,U1,T), holds(R,S,T), leftOnShelf(S,I,U,T).
 %decrement order amount
 leftToDeliver(O,I,U-U1,T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
-occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
+occurs(object(robot, R), deliver(O, I, U1), T) :- deliver(R, O, I, U1, T), holds(R,S,T).
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, nothing, T + 1) :- putdown(R, S, T).
@@ -145,6 +145,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver an order to a picking station that doesn't match the order
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
 
+% can't deliver inventory that's not on a shelf
+:- deliver(R, O, I, U, T), object(robot, T), holds(R, S, T), object(shelf, S), leftOnShelf(S,I,U2,T), U2>=U.
+
 
 % putdown ----------------------------------------------------------------------------------------------------
 
@@ -175,7 +178,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.
 :- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
-:- not 1 {leftToDeliver(O, I,U, T)}, object(order, O), T=1..h.
+:- not {leftToDeliver(O,I,U,T)} = A, A=#count{O,I: leftToDeliver(O,I,U,1)}, object(order, O), T=1..h.
 :- not {leftOnShelf(S,I,U,T)} = A, A=#count{S,I: leftOnShelf(S,I,U,1)}, object(shelf, S), T=1..h.
 
 
@@ -188,8 +191,10 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), leftOnShelf(S,I,U,T), U2>=U, T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
-{deliver(R, O, I,U2, T)} :- object(robot, R), order(O, I, U2), leftOnShelf(S,I,U,T), U2<=U, T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+% deliver leftOnShelf if less than leftToDeliver
+{deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), object(order, O), leftToDeliver(O,I,U2,T), leftOnShelf(S,I,U,T), U2>=U, T = 1..h-1.
+% deliver leftToDeliver if less than leftOnShelf
+{deliver(R, O, I,U2, T)} :- object(robot, R), holds(R, S, T), object(order, O), leftToDeliver(O,I,U2,T), leftOnShelf(S,I,U,T), U2<=U, T = 1..h-1.
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
@@ -227,7 +232,7 @@ actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 %#show totalOrders/1.
 %#show timeUnits/1.
 %#show totalLeftToDeliver/2.
-%#show leftToDeliver/4.
+#show leftToDeliver/4.
 %#show shelf/4.
 %#show robot/4.
 %#show holds/3.
@@ -237,3 +242,5 @@ actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 %#show wait/1.
 %#show actions/1.
 %#show leftOnShelf/4.
+%#show deliver/5.
+%#show product/3.

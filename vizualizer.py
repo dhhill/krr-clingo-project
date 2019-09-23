@@ -63,6 +63,11 @@ class Picking_station:
         return 'Picking station at ' + str(self.x) + ',' + str(self.y)
 
 def parse():
+    # get init
+    with open(sys.argv[1], 'r') as init_file:
+        init = init_file.read()
+    print(init)
+
     # run program and get output
     output = ''
     output = subprocess.run(['clingo', 'robots.lp', sys.argv[1], '-c', 'h=' + sys.argv[2]], stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -88,11 +93,6 @@ def parse():
         })
         max_t = max(max_t,timestep)
 
-    # get init
-    init = ''
-    with open(sys.argv[1], 'r') as init_file:
-        init = init_file.read()
-    print(init)
     # parse init
     init_list = init.split()
     highway_dict = {}
