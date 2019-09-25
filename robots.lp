@@ -80,12 +80,15 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
+
 % update the amount of product on the shelf after it is delivered
 product(I, S, U1-U2, T+1) :- deliver(R, O, I, U2, T), holds(R, S, T), product(I, S, U1, T).
+
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, nothing, T + 1) :- putdown(R, S, T).
 occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -149,6 +152,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2, T), U1 > U2.
 
+
 % don't over-deliver
 :- leftToDeliver(O, I,U, T), U < 0.
 
@@ -197,7 +201,12 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1. % can deliver either the ordered amount or the amount on the shelf
+{deliver(R, O, I,U2, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1. 
+
+% todo figure out how to allow other delivery amounts {deliver(R, O, I,U3, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), U3=1..U, T=1..h-1.
+
+
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
