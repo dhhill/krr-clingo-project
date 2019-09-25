@@ -201,12 +201,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1. % can deliver either the ordered amount or the amount on the shelf
-{deliver(R, O, I,U2, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1. 
-
-% todo figure out how to allow other delivery amounts {deliver(R, O, I,U3, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), U3=1..U, T=1..h-1.
-
-
+{deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), order(O, I, U2), product(I, S, U, T), T=1..h-1. % can deliver either the ordered amount or the amount on the shelf
+{deliver(R, O, I,U, T)} :- object(robot, R), leftToDeliver(O, I,U, T), T=1..h-1.
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
