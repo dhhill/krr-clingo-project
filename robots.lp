@@ -134,9 +134,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't put down and move during the same time step
 :- putdown(R, S, T), move(R, DX, DY, T).
 
-% can't deliver nothing
-:- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
-
 % can't deliver if not at the picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
 
