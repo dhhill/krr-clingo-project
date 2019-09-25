@@ -35,7 +35,8 @@ shelf(S, X,Y, 1) :- init(object(shelf, S), value(at,pair(X,Y))).
 object(shelf, S) :- init(object(shelf, S), value(at,pair(X,Y))).
 
 %init(object(product,'i'),value(on,pair('s','u'))).
-product(I, S,U) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
+product(I, S) :- init(object(product, I), value(on,pair(S,U))).
+product(I, S,U, 1) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
 
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
@@ -78,6 +79,9 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 %occurs(object(robot,’r’),deliver(’o’,’i’,’u’),’t’).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
+
+% update the amount of product on the shelf after it is delivered
+product(I, S, U1-U2, T+1) :- deliver(R, O, I, U2, T), holds(R, S, T), product(I, S, U1, T).
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, nothing, T + 1) :- putdown(R, S, T).
@@ -143,11 +147,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
 
 % can't deliver if the shelf doesn't have the right inventory
-:- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2), I1!=I2.
+:- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2, T), I1!=I2.
 
 % can't deliver more than the amount that's actually on the shelf
-:- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2), U1 > U2.
+:- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2, T), U1 > U2.
 
+% don't over-deliver
+:- leftToDeliver(O, I,U, T), U < 0.
 
 
 % putdown ----------------------------------------------------------------------------------------------------
@@ -182,6 +188,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
 :- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
 :- not {leftToDeliver(O, I,U, T)} = 1, order(O, I, U2), T=1..h.
+:- not {product(I, S, U, T)} = 1, product(I, S), T=1..h.
 
 
 % actions are exogenous
@@ -193,7 +200,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
 
 % deliver
-{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U), T = 1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
+{deliver(R, O, I,U, T)} :- object(robot, R), order(O, I, U2), product(I, S, U, T), T=1..h-1.  % number of units delivered at any one time doesn't have to match the exact amount that was ordered
 
 % putdown
 {putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
@@ -204,6 +211,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {shelf(S, X,Y, T + 1)} :- shelf(S, X,Y, T), T=1..h-1.
 {holds(R, S, T + 1)} :- holds(R, S, T), T=1..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=1..h-1.
+{product(I, S, U, T + 1)} :- product(I, S, U, T), T=1..h-1.
 
 
 
