@@ -1,41 +1,10 @@
 import re
+import sys
+import subprocess
 
-init = """
-init(object(node,1),value(at,pair(1,1))).
-init(object(node,2),value(at,pair(2,1))).
-init(object(node,3),value(at,pair(3,1))).
-init(object(node,4),value(at,pair(4,1))).
-init(object(node,5),value(at,pair(1,2))).
-init(object(node,6),value(at,pair(2,2))).
-init(object(node,7),value(at,pair(3,2))).
-init(object(node,8),value(at,pair(4,2))).
-init(object(node,9),value(at,pair(1,3))).
-init(object(node,10),value(at,pair(2,3))).
-init(object(node,11),value(at,pair(3,3))).
-init(object(node,12),value(at,pair(4,3))).
-init(object(node,13),value(at,pair(1,4))).
-init(object(node,14),value(at,pair(2,4))).
-init(object(node,15),value(at,pair(3,4))).
-init(object(node,16),value(at,pair(4,4))).
+init = ""
 
-init(object(pickingStation,1),value(at,pair(1,3))).
-init(object(pickingStation,2),value(at,pair(3,1))).
-
-init(object(robot,2),value(at,pair(2,2))).
-
-init(object(shelf,4),value(at,pair(4,4))).
-
-init(object(product,2),value(on,pair(4,1))).
-
-init(object(order,2),value(pickingStation,2)).
-init(object(order,2),value(line,pair(2,1))). 
-
-"""
-
-output = """
-occurs(object(robot,2),deliver(2,2,1),10) occurs(object(robot,2),pickup,5) occurs(object(robot,2),move(-1,0),6) occurs(object(robot,2),move(-1,0),7) occurs(object(robot,2),move(-1,0),8) occurs(object(robot,2),move(0,-1),9) occurs(object(robot,2),move(0,1),3) occurs(object(robot,2),move(0,1),4) occurs(object(robot,2),move(1,0),1) occurs(object(robot,2),move(1,0),2)
-"""
-
+output = ""
 
 class Robot:
     def __init__(self, x, y):
@@ -93,60 +62,70 @@ class Picking_station:
     def __repr__(self):
         return 'Picking station at ' + str(self.x) + ',' + str(self.y)
 
-##################################################
-# Parse
-##################################################
-# output
-action_list = output.split()
-organized_actions = {}
-max_t = 0
-for action_string in action_list:
-    action_string = action_string + ';'
-    timestep = int(re.search('\d*(?=\)\;)',action_string).group(0))
-    robot_id = int(re.search('\d*(?=\)\,)',action_string).group(0))
-    action = re.search('(?<=\)\,)\w\w',action_string).group(0)
-    action_params = [int(x) for x in re.findall('-?\d*',action_string) if x != ''][1:-1]
-    if timestep not in organized_actions:
-        organized_actions[timestep] = []
-    organized_actions[timestep].append({
-        'robot_id':robot_id,
-        'action':action,
-        'action_params':action_params
-    })
-    max_t = max(max_t,timestep)
+def parse():
+    # get init
+    with open(sys.argv[1], 'r') as init_file:
+        init = init_file.read()
+    print(init)
 
-# init
-init_list = init.split()
-highway_dict = {}
-robot_dict = {}
-shelf_dict = {}
-picking_station_dict = {}
-max_x = 0
-max_y = 0
+    # run program and get output
+    output = ''
+    output = subprocess.run(['clingo', 'robots.lp', sys.argv[1], '-c', 'h=' + sys.argv[2]], stdout=subprocess.PIPE).stdout.decode('utf-8')
+    print(output)
+    output = re.findall(".*(?=\r\n\w*: -?\d*\r\nOPTIMUM)", output, re.MULTILINE)[0]
 
-for init_string in init_list:
-    params = [int(x) for x in re.findall('-?\d*',init_string) if x != '']
-    location = False
-    if 'highway' in init_string:
-        location = True
-        highway_dict[params[0]] = Highway(params[1], params[2])
-    if 'robot' in init_string:
-        location = True
-        robot_dict[params[0]] = Robot(params[1], params[2])
-    if 'shelf' in init_string:
-        location = True
-        shelf_dict[params[0]] = Shelf(params[1], params[2])
-    if 'pickingStation' in init_string and len(params) == 3:
-        picking_station_dict[params[0]] = Picking_station(params[1], params[2])
+    # parse output
+    action_list = output.split()
+    organized_actions = {}
+    max_t = 0
+    for action_string in action_list:
+        action_string = action_string + ';'
+        timestep = int(re.search('\d*(?=\)\;)',action_string).group(0))
+        robot_id = int(re.search('\d*(?=\)\,)',action_string).group(0))
+        action = re.search('(?<=\)\,)\w\w',action_string).group(0)
+        action_params = [int(x) for x in re.findall('-?\d*',action_string) if x != ''][1:-1]
+        if timestep not in organized_actions:
+            organized_actions[timestep] = []
+        organized_actions[timestep].append({
+            'robot_id':robot_id,
+            'action':action,
+            'action_params':action_params
+        })
+        max_t = max(max_t,timestep)
 
-    if location:
-        max_x = max(params[-2],max_x)
-        max_y = max(params[-1],max_y)
+    # parse init
+    init_list = init.split()
+    highway_dict = {}
+    robot_dict = {}
+    shelf_dict = {}
+    picking_station_dict = {}
+    max_x = 0
+    max_y = 0
+
+    for init_string in init_list:
+        params = [int(x) for x in re.findall('-?\d*',init_string) if x != '']
+        location = False
+        if 'highway' in init_string:
+            location = True
+            highway_dict[params[0]] = Highway(params[1], params[2])
+        if 'robot' in init_string:
+            location = True
+            robot_dict[params[0]] = Robot(params[1], params[2])
+        if 'shelf' in init_string:
+            location = True
+            shelf_dict[params[0]] = Shelf(params[1], params[2])
+        if 'pickingStation' in init_string and len(params) == 3:
+            picking_station_dict[params[0]] = Picking_station(params[1], params[2])
+
+        if location:
+            max_x = max(params[-2],max_x)
+            max_y = max(params[-1],max_y)
+    return robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y, max_t, organized_actions
 
 ##################################################
 # Visualize
 ##################################################
-def print_map():
+def print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y):
     print('--'*max_x)
     for y in range(1,max_y+1):
         for x in range(1,max_x+1):
@@ -171,16 +150,23 @@ def print_map():
         print('|')
     print('--'*max_x)
 
-print_map()
+robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y, max_t, organized_actions = parse()
+
+print(organized_actions)
+
+print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y)
 for timestep in range(max_t):
-    for action in organized_actions[timestep+1]:
-        print(action)
-        if action['action'] == 'mo':
-            robot_dict[action['robot_id']].move(action['action_params'])
-        elif action['action'] == 'pi':
-            robot_dict[action['robot_id']].pickup()
-        elif action['action'] == 'pu':
-            robot_dict[action['robot_id']].putdown()
-        elif action['action'] == 'de':
-            robot_dict[action['robot_id']].deliver()
-    print_map()
+    if timestep + 1 not in organized_actions:
+        print(f'No actions in timestep {timestep+1}')
+    else:
+        for action in organized_actions[timestep+1]:
+            print(action)
+            if action['action'] == 'mo':
+                robot_dict[action['robot_id']].move(action['action_params'])
+            elif action['action'] == 'pi':
+                robot_dict[action['robot_id']].pickup()
+            elif action['action'] == 'pu':
+                robot_dict[action['robot_id']].putdown()
+            elif action['action'] == 'de':
+                robot_dict[action['robot_id']].deliver()
+    print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y)
