@@ -236,14 +236,14 @@ actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 
 
 
-#show totalOrders/1.
+%#show totalOrders/1.
 %#show timeUnits/1.
-#show leftToDeliver/4.
+%#show leftToDeliver/4.
 %#show shelf/4.
 %#show robot/4.
 %#show holds/3.
 %#show pickup/3.
 %#show putdown/3.
 #show occurs/3.
-#show wait/1.
-#show actions/1.
+%#show wait/1.
+%#show actions/1.

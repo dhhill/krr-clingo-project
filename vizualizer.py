@@ -152,16 +152,21 @@ def print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x,
 
 robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y, max_t, organized_actions = parse()
 
+print(organized_actions)
+
 print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y)
 for timestep in range(max_t):
-    for action in organized_actions[timestep+1]:
-        print(action)
-        if action['action'] == 'mo':
-            robot_dict[action['robot_id']].move(action['action_params'])
-        elif action['action'] == 'pi':
-            robot_dict[action['robot_id']].pickup()
-        elif action['action'] == 'pu':
-            robot_dict[action['robot_id']].putdown()
-        elif action['action'] == 'de':
-            robot_dict[action['robot_id']].deliver()
+    if timestep + 1 not in organized_actions:
+        print(f'No actions in timestep {timestep+1}')
+    else:
+        for action in organized_actions[timestep+1]:
+            print(action)
+            if action['action'] == 'mo':
+                robot_dict[action['robot_id']].move(action['action_params'])
+            elif action['action'] == 'pi':
+                robot_dict[action['robot_id']].pickup()
+            elif action['action'] == 'pu':
+                robot_dict[action['robot_id']].putdown()
+            elif action['action'] == 'de':
+                robot_dict[action['robot_id']].deliver()
     print_map(robot_dict, shelf_dict, highway_dict, picking_station_dict, max_x, max_y)
