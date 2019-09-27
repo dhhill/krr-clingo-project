@@ -152,6 +152,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2, T), U1 > U2.
 
+% don't deliver zero units
+:- deliver(R, O, I, U, T), U <= 0.
 
 % don't over-deliver
 :- leftToDeliver(O, I,U, T), U < 0.
@@ -225,7 +227,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 totalOrders(X) :- X = #sum{U,O,I: leftToDeliver(O, I,U, 1)}.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
-wait(X) :- X = #count{T: leftToDeliver(O, I,0, T)}.
+wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
 #maximize{X : wait(X)}.
 
 % minimize actions
