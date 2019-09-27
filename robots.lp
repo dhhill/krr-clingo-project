@@ -225,7 +225,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 totalOrders(X) :- X = #sum{U,O,I: leftToDeliver(O, I,U, 1)}.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
-wait(X) :- X = #count{T: leftToDeliver(O, I,0, T)}.
+wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
 #maximize{X : wait(X)}.
 
 % minimize actions
