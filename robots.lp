@@ -146,14 +146,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver an order to a picking station that doesn't match the order
 :- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
 
-% can't deliver if the shelf doesn't have the right inventory
-:- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2, T), I1!=I2.
-
-% can't deliver if the shelf isn't correct
-:- deliver(R, O, I, U1, T), holds(R, S1, T), product(I, S2, U2, T), S1!=S2.
-
-% can't deliver more than the amount that's actually on the shelf
-:- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2, T), U1 > U2.
+% can't deliver if the robot isn't holding a shelf with the right inventory, and can't deliver too many units
+:- deliver(R, O, I1, U1, T), holds(R, S1, T), product(I2, S2, U2, T), I1!=I2, S1!=S2, U1 > U2.
 
 
 % don't over-deliver
