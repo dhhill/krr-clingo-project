@@ -151,6 +151,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
 % don't over-deliver
+:- product(I, S, U, T), U < 0.
 :- leftToDeliver(O, I,U, T), U < 0.
 
 
