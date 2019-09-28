@@ -149,6 +149,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver if the shelf doesn't have the right inventory
 :- deliver(R, O, I1, U1, T), holds(R, S, T), product(I2, S, U2, T), I1!=I2.
 
+% can't deliver if the shelf isn't correct
+:- deliver(R, O, I, U1, T), holds(R, S1, T), product(I, S2, U2, T), S1!=S2.
+
 % can't deliver more than the amount that's actually on the shelf
 :- deliver(R, O, I, U1, T), holds(R, S, T), product(I, S, U2, T), U1 > U2.
 
