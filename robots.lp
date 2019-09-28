@@ -149,6 +149,8 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % can't deliver if the robot isn't holding a shelf with the right inventory, and can't deliver too many units
 :- deliver(R, O, I1, U1, T), holds(R, S1, T), product(I2, S2, U2, T), I1!=I2, S1!=S2, U1 > U2.
 
+% don't deliver 0 units
+:- deliver(R, O, I, 0, T).
 
 % don't over-deliver
 :- product(I, S, U, T), U < 0.
