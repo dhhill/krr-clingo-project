@@ -144,7 +144,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- deliver(R, O, I, U, T), object(robot, R), holds(R, S, T), S=nothing.
 
 % can't deliver an order to a picking station that doesn't match the order
-:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P, X,Y), order(O1, P1), P1!=P, O1!=O.
+:- deliver(R, O, I, U, T), robot(R, X,Y, T), pickingStation(P1, X,Y), order(O, P2), P1!=P2.
 
 % don't deliver 0 units
 :- deliver(R, O, I, 0, T).
