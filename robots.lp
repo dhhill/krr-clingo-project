@@ -2,8 +2,6 @@
 % robots.lp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%#include "case5.asp".
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -14,7 +12,7 @@ holdable(nothing).
 % order object with indicated types available
 object(node; highway; pickingStation; robot; shelf; product; order).
 
-%initialize state based on input
+% initialize state based on input ----------------------------------------------------------------------
 
 %init(object(node,'n'),value(at,pair('x','y'))).
 node(X,Y) :- init(object(node, N), value(at,pair(X,Y))).
@@ -36,7 +34,7 @@ object(shelf, S) :- init(object(shelf, S), value(at,pair(X,Y))).
 
 %init(object(product,'i'),value(on,pair('s','u'))).
 product(I, S) :- init(object(product, I), value(on,pair(S,U))).
-product(I, S,U, 1) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
+product(I, S,U, 1) :- init(object(product, I), value(on,pair(S,U))).  % U is the number of units of product I on shelf S
 
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
