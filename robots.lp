@@ -50,14 +50,8 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 % state constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% a robot can only have one position at any given time
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T), X1!=X2, Y1!=Y2.
-
 % no two occupants of the same square
 :- robot(R1, X,Y, T), robot(R2, X,Y, T), R1!=R2.
-
-% each robot can only hold one shelf
-:- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
 % if a robot is holding a shelf, the shelf has the same location as the robot
 shelf(S, X,Y, T) :- robot(R, X,Y, T), holds(R, S, T), S!=nothing.
@@ -174,14 +168,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
 
 % uniqueness and existence of value constraints
-:- not {node(X,Y)} = 1, robot(R, X,Y, T), T=1..h.
-:- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.
-:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=1..h.
-:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.
-:- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
-:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
-:- not {leftToDeliver(O, I,U, T)} = 1, order(O, I, U2), T=1..h.
-:- not {product(I, S, U, T)} = 1, product(I, S), T=1..h.
+:- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.  % each node may have at most one robot at a time
+:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=1..h.  % each robot must have exactly one location at all times
+:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.  % each shelf must have exactly one location at all times
+:- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.  % each robot must hold one thing (either a shelf or nothing) at all times
+:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.  % a robot can make a maximum of one delivery per time step
+:- not {leftToDeliver(O, I,U, T)} = 1, order(O, I, U2), T=1..h.  % the leftToDeliver amount must be kept track of for each order at every time step
+:- not {product(I, S, U, T)} = 1, product(I, S), T=1..h.  % the amount of inventory of a given item on a given shelf must be kept track of at every time step
 
 
 % actions are exogenous
