@@ -6,6 +6,7 @@
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% robots can hold a shelf, or nothing
 holdable(H) :- object(shelf, H).
 holdable(nothing).
 
@@ -78,15 +79,12 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
-
 % update the amount of product on the shelf after it is delivered
 product(I, S, U1-U2, T+1) :- deliver(R, O, I, U2, T), holds(R, S, T), product(I, S, U1, T).
-
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, nothing, T + 1) :- putdown(R, S, T).
 occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -121,7 +119,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % two shelves can't be in the same square
 :- shelf(S1, X,Y, T), shelf(S2, X,Y, T), S1!=S2.
-
 
 
 % pickup ----------------------------------------------------------------------------------------------------
@@ -167,9 +164,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- putdown(R, S, T), robot(R, X,Y, T), highway(X,Y).
 
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % domain independent axioms
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -193,17 +187,17 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % actions are exogenous
 
 % move
-{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T = 1..h-1.
+{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T=1..h-1.
 
 % pickup
-{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
+{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T=1..h-1.
 
 % deliver
 {deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), order(O, I, U2), product(I, S, U, T), T=1..h-1. % can deliver either the ordered amount or the amount on the shelf
 {deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), order(O, I, U2), product(I, S, U3, T), leftToDeliver(O, I,U, T), T=1..h-1.
 
 % putdown
-{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
+{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T=1..h-1.
 
 
 % everything stays where it was if no movement is indicated (commonsense law of inertia)
@@ -212,8 +206,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {holds(R, S, T + 1)} :- holds(R, S, T), T=1..h-1.
 {leftToDeliver(O, I,U, T + 1)} :- leftToDeliver(O, I,U, T), T=1..h-1.
 {product(I, S, U, T + 1)} :- product(I, S, U, T), T=1..h-1.
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
