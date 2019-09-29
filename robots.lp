@@ -135,7 +135,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % deliver ----------------------------------------------------------------------------------------------------
 
-% can't deliver if not at the picking station
+% can't deliver if not at a picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
 
 % can't deliver if the robot isn't holding anything
@@ -212,8 +212,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-totalOrders(X) :- X = #sum{U,O,I: leftToDeliver(O, I,U, 1)}.
-
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
 wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
 #maximize{X : wait(X)}.
@@ -222,6 +220,7 @@ wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
 actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 #minimize{A : actions(A)}.
 
+% goal is to complete all orders
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
 
