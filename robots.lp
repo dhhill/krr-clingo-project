@@ -2,19 +2,18 @@
 % robots.lp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%#include "case5.asp".
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sort and object declaration
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% robots can hold a shelf, or nothing
 holdable(H) :- object(shelf, H).
 holdable(nothing).
 
 % order object with indicated types available
 object(node; highway; pickingStation; robot; shelf; product; order).
 
-%initialize state based on input
+% initialize state based on input ----------------------------------------------------------------------
 
 %init(object(node,'n'),value(at,pair('x','y'))).
 node(X,Y) :- init(object(node, N), value(at,pair(X,Y))).
@@ -23,6 +22,7 @@ node(X,Y) :- init(object(node, N), value(at,pair(X,Y))).
 highway(X,Y) :- init(object(highway, H), value(at,pair(X,Y))).
 
 %init(object(pickingStation,'p'),value(at,pair('x','y'))).
+object(pickingStation, P) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 pickingStation(P, X,Y) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 
 %init(object(robot,'r'),value(at,pair('x','y'))).
@@ -36,7 +36,7 @@ object(shelf, S) :- init(object(shelf, S), value(at,pair(X,Y))).
 
 %init(object(product,'i'),value(on,pair('s','u'))).
 product(I, S) :- init(object(product, I), value(on,pair(S,U))).
-product(I, S,U, 1) :- init(object(product, I), value(on,pair(S,U))).  % S is the shelf, U is the number of units on the shelf
+product(I, S,U, 1) :- init(object(product, I), value(on,pair(S,U))).  % U is the number of units of product I on shelf S
 
 %init(object(order,'o'),value(line,pair('i','u'))).
 order(O, I,U) :- init(object(order, O), value(line,pair(I,U))).  % I is the product, U is the number of units ordered
@@ -51,14 +51,8 @@ order(O, P) :- init(object(order, O), value(pickingStation, P)).
 % state constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% a robot can only have one position at any given time
-:- robot(R, X1,Y1, T), robot(R, X2,Y2, T), X1!=X2, Y1!=Y2.
-
 % no two occupants of the same square
 :- robot(R1, X,Y, T), robot(R2, X,Y, T), R1!=R2.
-
-% each robot can only hold one shelf
-:- holds(R, S1, T), holds(R, S2, T), S1!=S2.
 
 % if a robot is holding a shelf, the shelf has the same location as the robot
 shelf(S, X,Y, T) :- robot(R, X,Y, T), holds(R, S, T), S!=nothing.
@@ -80,20 +74,32 @@ occurs(object(robot, R), pickup, T) :- pickup(R, S, T).
 leftToDeliver(O, I, U - U1, T+1) :- deliver(R, O, I, U1, T), leftToDeliver(O, I, U, T).
 occurs(object(robot, R), deliver(O, I, U), T) :- deliver(R, O, I, U, T).
 
-
 % update the amount of product on the shelf after it is delivered
 product(I, S, U1-U2, T+1) :- deliver(R, O, I, U2, T), holds(R, S, T), product(I, S, U1, T).
-
 
 %occurs(object(robot,'r'), putdown,'t').
 holds(R, nothing, T + 1) :- putdown(R, S, T).
 occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % action constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% disallow concurrent actions -----------------------------------------------------------------------------
+
+% can't put something down and deliver it at the same time
+:- putdown(R, S, T), deliver(R, I, O, U, T).
+
+% also can't move and deliver during the same time step
+:- deliver(R, I, O, U, T), move(R, DX, DY, T).
+
+% can't pickup and move during the same time step
+:- pickup(R, S, T), move(R, DX, DY, T).
+
+% can't put down and move during the same time step
+:- putdown(R, S, T), move(R, DX, DY, T).
+
 
 % move ----------------------------------------------------------------------------------------------------
 
@@ -110,7 +116,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- shelf(S1, X,Y, T), shelf(S2, X,Y, T), S1!=S2.
 
 
-
 % pickup ----------------------------------------------------------------------------------------------------
 
 % can't pick something up that is not in the same square
@@ -125,19 +130,7 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 % deliver ----------------------------------------------------------------------------------------------------
 
-% can't put something down and deliver it at the same time
-:- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
-
-% also can't move and deliver during the same time step
-:- deliver(R, I, O, U, T), move(R, DX, DY, T).
-
-% can't pickup and move during the same time step
-:- pickup(R, S, T), move(R, DX, DY, T).
-
-% can't put down and move during the same time step
-:- putdown(R, S, T), move(R, DX, DY, T).
-
-% can't deliver if not at the picking station
+% can't deliver if not at a picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
 
 % can't deliver if the robot isn't holding anything
@@ -166,43 +159,42 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 :- putdown(R, S, T), robot(R, X,Y, T), highway(X,Y).
 
 
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % domain independent axioms
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% fluents are initially exogenous
-1{robot(R, X,Y, 1):node(X,Y)}1 :- robot(R, X,Y, 1).
-1{holds(R, nothing, 1)}1 :- object(robot, R).
-1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
+% initial constraints (don't really need fluents to be initially exogenous because the initial state is externally provided)
+1 {robot(R, X,Y, 1): node(X,Y)} 1 :- object(robot, R).
+1 {shelf(S, X,Y, 1): node(X,Y)} 1 :- object(shelf, S).
+1 {pickingStation(P, X,Y): node(X,Y)} 1 :- object(pickingStation, P).
+holds(R, nothing, 1) :- object(robot, R).  % a robot could conceivably start off holding something, but our initial states do not allow this
+:- order(O, P), not {object(pickingStation, P)} = 1.
+
 
 % uniqueness and existence of value constraints
-:- not {node(X,Y)} = 1, robot(R, X,Y, T), T=1..h.
-:- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.
-:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=1..h.
-:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.
-:- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.
-:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.
-:- not {leftToDeliver(O, I,U, T)} = 1, order(O, I, U2), T=1..h.
-:- not {product(I, S, U, T)} = 1, product(I, S), T=1..h.
+:- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.  % each node may have at most one robot at a time
+:- not {robot(R, X,Y, T)} = 1, object(robot, R), T=1..h.  % each robot must have exactly one location at all times
+:- not {shelf(S, X,Y, T)} = 1, object(shelf, S), T=1..h.  % each shelf must have exactly one location at all times
+:- not {holds(R, S, T)} = 1, object(robot, R), T=1..h.  % each robot must hold one thing (either a shelf or nothing) at all times
+:- not {deliver(R, O, I,U, T)} 1, object(robot, R), T=1..h.  % a robot can make a maximum of one delivery per time step
+:- not {leftToDeliver(O, I,U, T)} = 1, order(O, I, U2), T=1..h.  % the leftToDeliver amount must be kept track of for each order at every time step
+:- not {product(I, S, U, T)} = 1, product(I, S), T=1..h.  % the amount of inventory of a given item on a given shelf must be kept track of at every time step
 
 
 % actions are exogenous
 
 % move
-{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T = 1..h-1.
+{move(R, DX,DY, T)} :- object(robot, R), DX=-1..1, DY=-1..1, T=1..h-1.
 
 % pickup
-{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
+{pickup(R, S, T)} :- object(robot, R), object(shelf, S), T=1..h-1.
 
 % deliver
 {deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), order(O, I, U2), product(I, S, U, T), T=1..h-1. % can deliver either the ordered amount or the amount on the shelf
 {deliver(R, O, I,U, T)} :- object(robot, R), holds(R, S, T), order(O, I, U2), product(I, S, U3, T), leftToDeliver(O, I,U, T), T=1..h-1.
 
 % putdown
-{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T = 1..h-1.
+{putdown(R, S, T)} :- object(robot, R), object(shelf, S), T=1..h-1.
 
 
 % everything stays where it was if no movement is indicated (commonsense law of inertia)
@@ -213,13 +205,9 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 {product(I, S, U, T + 1)} :- product(I, S, U, T), T=1..h-1.
 
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goal
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-totalOrders(X) :- X = #sum{U,O,I: leftToDeliver(O, I,U, 1)}.
 
 % count how many extra steps there are after having delivered everything (meaning everything was delivered as soon as possible)
 wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
@@ -229,18 +217,8 @@ wait(X) :- X = #count{T, O,I: leftToDeliver(O, I,0, T)}.
 actions(A) :- A = #count{T,O,D: occurs(O, D, T)}.
 #minimize{A : actions(A)}.
 
+% goal is to complete all orders
 :- #sum{U, O,I: leftToDeliver(O, I,U, h)} != 0.
 
 
-
-%#show totalOrders/1.
-%#show timeUnits/1.
-%#show leftToDeliver/4.
-%#show shelf/4.
-%#show robot/4.
-%#show holds/3.
-%#show pickup/3.
-%#show putdown/3.
 #show occurs/3.
-%#show wait/1.
-%#show actions/1.
