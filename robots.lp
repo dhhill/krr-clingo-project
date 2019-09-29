@@ -93,6 +93,21 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % action constraints
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% disallow concurrent actions -----------------------------------------------------------------------------
+
+% can't put something down and deliver it at the same time
+:- putdown(R, S, T), deliver(R, I, O, U, T).
+
+% also can't move and deliver during the same time step
+:- deliver(R, I, O, U, T), move(R, DX, DY, T).
+
+% can't pickup and move during the same time step
+:- pickup(R, S, T), move(R, DX, DY, T).
+
+% can't put down and move during the same time step
+:- putdown(R, S, T), move(R, DX, DY, T).
+
+
 % move ----------------------------------------------------------------------------------------------------
 
 % can only move to an adjascent square
@@ -122,18 +137,6 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 
 
 % deliver ----------------------------------------------------------------------------------------------------
-
-% can't put something down and deliver it at the same time
-:- putdown(R, S, T), deliver(R, I, O, U, T).  % almost the same as can't put down at a picking station, but simpler
-
-% also can't move and deliver during the same time step
-:- deliver(R, I, O, U, T), move(R, DX, DY, T).
-
-% can't pickup and move during the same time step
-:- pickup(R, S, T), move(R, DX, DY, T).
-
-% can't put down and move during the same time step
-:- putdown(R, S, T), move(R, DX, DY, T).
 
 % can't deliver if not at the picking station
 :- deliver(R, O, I,U, T), robot(R, X,Y, T), not {pickingStation(P, X,Y)} = 1.
