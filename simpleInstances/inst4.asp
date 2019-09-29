@@ -26,8 +26,8 @@ init(object(highway,16),value(at,pair(4,4))).
 init(object(pickingStation,1),value(at,pair(1,3))).
 init(object(pickingStation,2),value(at,pair(3,1))).
 
-init(object(robot,1),value(at,pair(4,3))).
-init(object(robot,2),value(at,pair(2,2))).
+init(object(robot,1),value(at,pair(2,2))).  % changed from 4,3 for the sake of speed
+init(object(robot,2),value(at,pair(2,3))).  % changed from 2,2 for the sake of speed
 
 init(object(shelf,1),value(at,pair(3,3))).
 init(object(shelf,2),value(at,pair(2,1))).

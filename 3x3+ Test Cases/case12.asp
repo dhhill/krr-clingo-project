@@ -1,5 +1,5 @@
 % requires h=12
-% moved shelves and robots in closer to reduce time from 17
+% moved shelves in closer to reduce time from ~17
 
 init(object(node,1),value(at,pair(1,1))).
 init(object(node,2),value(at,pair(1,2))).

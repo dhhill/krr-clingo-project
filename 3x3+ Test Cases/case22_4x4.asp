@@ -1,3 +1,6 @@
+% requires 11
+% moved the starting location of the robots to reduce the time
+
 init(object(node,1),value(at,pair(1,1))).
 init(object(node,2),value(at,pair(2,1))).
 init(object(node,3),value(at,pair(3,1))).
@@ -20,10 +23,10 @@ init(object(pickingStation,2),value(at,pair(2,3))).
 init(object(pickingStation,3),value(at,pair(3,2))).
 init(object(pickingStation,4),value(at,pair(3,3))).
 
-init(object(robot,1),value(at,pair(1,1))).
-init(object(robot,2),value(at,pair(1,4))).
-init(object(robot,3),value(at,pair(4,1))).
-init(object(robot,4),value(at,pair(4,4))).
+init(object(robot,1),value(at,pair(1,2))).
+init(object(robot,2),value(at,pair(1,3))).
+init(object(robot,3),value(at,pair(4,2))).
+init(object(robot,4),value(at,pair(4,3))).
 
 init(object(shelf,1),value(at,pair(1,2))).
 init(object(shelf,2),value(at,pair(1,3))).
