@@ -22,6 +22,7 @@ node(X,Y) :- init(object(node, N), value(at,pair(X,Y))).
 highway(X,Y) :- init(object(highway, H), value(at,pair(X,Y))).
 
 %init(object(pickingStation,'p'),value(at,pair('x','y'))).
+object(pickingStation, P) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 pickingStation(P, X,Y) :- init(object(pickingStation, P), value(at,pair(X,Y))).
 
 %init(object(robot,'r'),value(at,pair('x','y'))).
@@ -162,10 +163,13 @@ occurs(object(robot, R), putdown, T) :- putdown(R, S, T).
 % domain independent axioms
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% fluents are initially exogenous
-1{robot(R, X,Y, 1):node(X,Y)}1 :- robot(R, X,Y, 1).
-1{holds(R, nothing, 1)}1 :- object(robot, R).
-1{shelf(S, X,Y, 1):node(X,Y)}1 :- shelf(S, X,Y, 1).
+% initial constraints (don't really need fluents to be initially exogenous because the initial state is externally provided)
+1 {robot(R, X,Y, 1): node(X,Y)} 1 :- object(robot, R).
+1 {shelf(S, X,Y, 1): node(X,Y)} 1 :- object(shelf, S).
+1 {pickingStation(P, X,Y): node(X,Y)} 1 :- object(pickingStation, P).
+holds(R, nothing, 1) :- object(robot, R).  % a robot could conceivably start off holding something, but our initial states do not allow this
+:- order(O, P), not {object(pickingStation, P)} = 1.
+
 
 % uniqueness and existence of value constraints
 :- not {robot(R, X,Y, T)} 1, node(X,Y), T=1..h.  % each node may have at most one robot at a time
