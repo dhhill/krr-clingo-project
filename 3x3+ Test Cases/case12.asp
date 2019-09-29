@@ -13,7 +13,7 @@ init(object(node,9),value(at,pair(3,3))).
 
 init(object(pickingStation,1),value(at,pair(2,2))).
 
-init(object(robot,1),value(at,pair(3,1))).
+init(object(robot,1),value(at,pair(1,2))).
 
 init(object(shelf,1),value(at,pair(1,2))).
 init(object(shelf,2),value(at,pair(3,2))).
